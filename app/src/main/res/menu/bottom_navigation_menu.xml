@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/imageSearch"
+        android:icon="@drawable/baseline_search_24"
+        android:title="이미지 검색"/>
+
+    <item android:id="@+id/imageLibrary"
+        android:icon="@drawable/outline_account_box_24"
+        android:title="내 보관함"/>
+
+</menu>
