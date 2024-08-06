@@ -1,6 +1,5 @@
 package com.example.myimagesearch.adapter
 
-
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -8,13 +7,20 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myimagesearch.databinding.ItemImageBinding
 import com.example.myimagesearch.model.SearchModel
-
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class SearchAdapter : ListAdapter<SearchModel, SearchAdapter.ImageItemViewHolder>(diffUtil) {
+
     inner class ImageItemViewHolder(private val binding: ItemImageBinding) :
         RecyclerView.ViewHolder(binding.root) {
+
         fun bind(searchModel: SearchModel) {
-            binding.titleTextView.text = searchModel.id
+            binding.titleTextView.text = searchModel.siteName
+            // datetime을 String으로 변환하여 설정
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+            val dateText = searchModel.datetime?.let { dateFormat.format(it) } ?: "Unknown Date"
+            binding.dateTextView.text = dateText
         }
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageItemViewHolder {
