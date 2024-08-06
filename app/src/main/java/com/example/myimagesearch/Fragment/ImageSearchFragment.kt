@@ -2,7 +2,9 @@ package com.example.myimagesearch.Fragment
 
 import android.os.Bundle
 import android.util.Log
+import android.view.KeyEvent
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
@@ -39,7 +41,8 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
         super.onViewCreated(view, savedInstanceState)
 
         initImageRecyclerView()
-        fetchData()
+        setupSearchListener() // 이벤트 리스너 설정
+        fetchData("cat") // 초기 데이터를 가져옵니다.
     }
 
     private fun initImageRecyclerView() {
@@ -48,7 +51,20 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
         binding.imageRecyclerView.adapter = adapter
     }
 
-    private fun fetchData() {
+    private fun setupSearchListener() {
+        binding.searchEditText.setOnKeyListener { v, keyCode, event ->
+            if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == MotionEvent.ACTION_DOWN) {
+                val query = binding.searchEditText.text.toString()
+                if (query.isNotEmpty()) {
+                    fetchData(query) // 사용자가 입력한 쿼리를 fetchData로 전달
+                }
+                return@setOnKeyListener true
+            }
+            false
+        }
+    }
+
+    private fun fetchData(query: String) {
         // HttpLoggingInterceptor 설정
         val logging = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY // 전체 요청과 응답을 로그로 출력
@@ -81,7 +97,7 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
         val imageService = retrofit.create(ImageService::class.java)
 
         val apiKey = "KakaoAK e9e0d93198726fed58205bcc2da07846"
-        val call = imageService.searchImages(apiKey, "cat")
+        val call = imageService.searchImages(apiKey, query)
         call.enqueue(object : Callback<ImageSearch> {
             override fun onResponse(call: Call<ImageSearch>, response: Response<ImageSearch>) {
                 if (response.isSuccessful) {
