@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.myimagesearch.databinding.ItemImageBinding
 import com.example.myimagesearch.model.SearchModel
 import java.text.SimpleDateFormat
@@ -21,6 +22,11 @@ class SearchAdapter : ListAdapter<SearchModel, SearchAdapter.ImageItemViewHolder
             val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
             val dateText = searchModel.datetime?.let { dateFormat.format(it) } ?: "Unknown Date"
             binding.dateTextView.text = dateText
+                //썸네일 이미지 Glide로드
+            Glide.with(binding.root.context)
+                .load(searchModel.thumbnailUrl)
+                .into(binding.thumbnailImageView)
+
         }
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageItemViewHolder {
