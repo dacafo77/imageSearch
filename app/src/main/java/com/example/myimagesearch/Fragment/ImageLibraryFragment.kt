@@ -59,6 +59,7 @@ class ImageLibraryFragment: Fragment(R.layout.fragment_imagelibrary) {
 
         // 어댑터 갱신
         savedImagesAdapter.submitList(mainActivity.savedImageList.toList())
+        savedImagesAdapter.notifyDataSetChanged()
         Toast.makeText(requireContext(), "이미지가 삭제되었습니다", Toast.LENGTH_SHORT).show()
     }
 
