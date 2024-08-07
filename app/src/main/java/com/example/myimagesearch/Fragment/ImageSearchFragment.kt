@@ -1,5 +1,6 @@
 package com.example.myimagesearch.Fragment
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
@@ -7,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.myimagesearch.R
@@ -55,6 +57,10 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
             binding.searchEditText.isFocusableInTouchMode = true
             binding.searchEditText.isFocusable = true
             binding.searchEditText.requestFocus()
+            //키보드 활성화
+            val keyBoard =
+                requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            keyBoard.showSoftInput(binding.searchEditText, InputMethodManager.SHOW_IMPLICIT)
         }
 
         // searchButton 클릭 리스너 설정
@@ -62,6 +68,11 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
             val query = binding.searchEditText.text.toString()
             if (query.isNotEmpty()) {
                 fetchData(query) // 사용자가 입력한 쿼리를 fetchData로 전달
+
+                //키보드 비활성화
+                val keyBoard =
+                    requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                keyBoard.hideSoftInputFromWindow(binding.searchEditText.windowToken, 0)
             }
         }
     }
@@ -141,7 +152,10 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
                         )
                     })
                 } else {
-                    Log.e("API_ERROR", "Error: ${response.code()} - ${response.errorBody()?.string()}")
+                    Log.e(
+                        "API_ERROR",
+                        "Error: ${response.code()} - ${response.errorBody()?.string()}"
+                    )
                 }
             }
 
