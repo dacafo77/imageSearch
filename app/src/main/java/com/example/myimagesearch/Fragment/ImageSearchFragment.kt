@@ -47,7 +47,8 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
         super.onViewCreated(view, savedInstanceState)
 
         // SharedPreferences 초기화
-        sharedPreferences = requireContext().getSharedPreferences("selected_images", Context.MODE_PRIVATE)
+        sharedPreferences =
+            requireContext().getSharedPreferences("saved_images", Context.MODE_PRIVATE)
 
         initImageRecyclerView()
         setupSearchListener()
@@ -56,8 +57,8 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
         (binding.imageRecyclerView.adapter as SearchAdapter).setOnItemClickListener { searchModel ->
             val mainActivity = activity as? MainActivity
             val savedImageList = mainActivity?.savedImageList
-            savedImageList?.add(searchModel.thumbnailUrl ?: "")
-            saveSelectedImages(savedImageList)
+            savedImageList?.add(searchModel)
+            saveSavedImages(savedImageList)
         }
 
         // 포커스시에 글자 삭제
@@ -179,11 +180,14 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
         })
     }
 
-    // 선택된 이미지를 SharedPreferences에 저장
-    private fun saveSelectedImages(selectedImages: List<String>?) {
+    // 선택된 이미지를 SearchModel로 저장
+    private fun saveSavedImages(savedImages: List<SearchModel>?) {
         val editor = sharedPreferences.edit()
-        editor.putStringSet("image_urls", selectedImages?.toSet())
+        val imageUrlSet = savedImages?.map { it.thumbnailUrl ?: "" }?.toSet() ?: emptySet()
+        editor.putStringSet("image_urls", imageUrlSet)
         editor.apply()
+
+
     }
 
     override fun onDestroyView() {
