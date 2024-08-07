@@ -43,8 +43,18 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
         initImageRecyclerView()
         setupSearchListener() // 이벤트 리스너 설정
 
+        //포커스시에 글자 삭제
+        binding.searchEditText.setOnFocusChangeListener { v, hasFocus ->
+            if (hasFocus) {
+                binding.searchEditText.text.clear()
+            }
+        }
+        binding.searchEditText.setOnClickListener {
+            binding.searchEditText.isFocusableInTouchMode = true
+            binding.searchEditText.isFocusable = true
+            binding.searchEditText.requestFocus()
+        }
     }
-
     private fun initImageRecyclerView() {
         val adapter = SearchAdapter()
         binding.imageRecyclerView.layoutManager = GridLayoutManager(requireContext(),2)

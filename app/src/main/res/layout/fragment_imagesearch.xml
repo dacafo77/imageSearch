@@ -19,6 +19,8 @@
             android:inputType="text"
             android:layout_height="wrap_content"
             android:text="검색어를 적어주세요"
+            android:focusable="false"
+            android:focusableInTouchMode="true"
 
             />
 
