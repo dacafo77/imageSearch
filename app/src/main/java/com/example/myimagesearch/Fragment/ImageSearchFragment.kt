@@ -139,7 +139,9 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
                     imageSearchResult?.documents?.forEach {
                         Log.d("API_RESPONSE", "Thumbnail URL: ${it.thumbnailUrl}")
                     }
-
+                    //이미지 갯수 제한
+                    val limitedList = imageSearchResult?.documents?.take(80)
+                    
                     // 데이터를 RecyclerView에 반영
                     val adapter = binding.imageRecyclerView.adapter as SearchAdapter
                     adapter.submitList(imageSearchResult?.documents?.map {
