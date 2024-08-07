@@ -153,6 +153,8 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
                             itemType = SearchListType.IMAGE
                         )
                     })
+                    //재 검색시 리사이클러뷰 초기화
+                    binding.imageRecyclerView.scrollToPosition(0)
                 } else {
                     Log.e(
                         "API_ERROR",
