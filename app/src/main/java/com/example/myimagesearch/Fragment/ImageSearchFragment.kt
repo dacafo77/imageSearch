@@ -8,7 +8,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager
 import com.example.myimagesearch.R
 import com.example.myimagesearch.adapter.SearchAdapter
 import com.example.myimagesearch.api.ImageService
@@ -42,12 +42,12 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
 
         initImageRecyclerView()
         setupSearchListener() // 이벤트 리스너 설정
-        fetchData("cat") // 초기 데이터를 가져옵니다.
+
     }
 
     private fun initImageRecyclerView() {
         val adapter = SearchAdapter()
-        binding.imageRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        binding.imageRecyclerView.layoutManager = GridLayoutManager(requireContext(),2)
         binding.imageRecyclerView.adapter = adapter
     }
 
@@ -77,10 +77,10 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
                 val original = chain.request()
                 val requestBuilder = original.newBuilder()
                     .header("Authorization", "KakaoAK e9e0d93198726fed58205bcc2da07846") // API 키 변경
-                    .header("User-Agent", "YourAppName") // 적절한 사용자 에이전트 값
+                    .header("User-Agent", "AppName") // 적절한 사용자 에이전트 값
                     .header("Referer", "https://yourappdomain.com") // 적절한 도메인 또는 앱 정보
                     .header("os", android.os.Build.VERSION.RELEASE) // 운영 체제 버전
-                    .header("origin", "YourAppName") // 애플리케이션 이름 또는 도메인
+                    .header("origin", "AppName") // 애플리케이션 이름 또는 도메인
                     .method(original.method, original.body)
                 val request = requestBuilder.build()
                 chain.proceed(request)
@@ -90,19 +90,23 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
         // Retrofit 설정
         val retrofit = Retrofit.Builder()
             .baseUrl("https://dapi.kakao.com")
-            .client(client) // OkHttpClient를 Retrofit에 추가
+            .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
         val imageService = retrofit.create(ImageService::class.java)
 
-        val apiKey = "KakaoAK e9e0d93198726fed58205bcc2da07846"
-        val call = imageService.searchImages(apiKey, query)
+        val call = imageService.searchImages("KakaoAK e9e0d93198726fed58205bcc2da07846", query)
         call.enqueue(object : Callback<ImageSearch> {
             override fun onResponse(call: Call<ImageSearch>, response: Response<ImageSearch>) {
                 if (response.isSuccessful) {
                     val imageSearchResult = response.body()
                     Log.d("API_RESPONSE", "Success: ${imageSearchResult.toString()}")
+
+                    // 응답 데이터에서 thumbnailUrl 필드 확인
+                    imageSearchResult?.documents?.forEach {
+                        Log.d("API_RESPONSE", "Thumbnail URL: ${it.thumbnailUrl}")
+                    }
 
                     // 데이터를 RecyclerView에 반영
                     val adapter = binding.imageRecyclerView.adapter as SearchAdapter
