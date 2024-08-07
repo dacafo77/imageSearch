@@ -10,6 +10,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.myimagesearch.MainActivity
@@ -187,7 +188,7 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
         editor.putStringSet("image_urls", imageUrlSet)
         editor.apply()
 
-
+        Toast.makeText(requireContext(),"이미지가 저장되었습니다.",Toast.LENGTH_SHORT).show()
     }
 
     override fun onDestroyView() {
