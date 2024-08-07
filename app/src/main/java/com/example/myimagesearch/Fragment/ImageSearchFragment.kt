@@ -49,15 +49,26 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
                 binding.searchEditText.text.clear()
             }
         }
+
+        //포커스 활성화
         binding.searchEditText.setOnClickListener {
             binding.searchEditText.isFocusableInTouchMode = true
             binding.searchEditText.isFocusable = true
             binding.searchEditText.requestFocus()
         }
+
+        // searchButton 클릭 리스너 설정
+        binding.searchButton.setOnClickListener {
+            val query = binding.searchEditText.text.toString()
+            if (query.isNotEmpty()) {
+                fetchData(query) // 사용자가 입력한 쿼리를 fetchData로 전달
+            }
+        }
     }
+
     private fun initImageRecyclerView() {
         val adapter = SearchAdapter()
-        binding.imageRecyclerView.layoutManager = GridLayoutManager(requireContext(),2)
+        binding.imageRecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
         binding.imageRecyclerView.adapter = adapter
     }
 
