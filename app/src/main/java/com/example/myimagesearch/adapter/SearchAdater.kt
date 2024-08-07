@@ -14,6 +14,8 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 class SearchAdapter : ListAdapter<SearchModel, SearchAdapter.ImageItemViewHolder>(diffUtil) {
+//이미지 전달 클릭리스너
+private var onItemClickListener: ((SearchModel) -> Unit)? = null
 
     inner class ImageItemViewHolder(private val binding: ItemImageBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -28,12 +30,15 @@ class SearchAdapter : ListAdapter<SearchModel, SearchAdapter.ImageItemViewHolder
 
             // 썸네일 이미지 Glide로 로드
             Log.d("SearchAdapter", "Loading thumbnail URL: ${searchModel.thumbnailUrl}")
-
             Glide.with(binding.root.context)
                 .load(searchModel.thumbnailUrl)
                 .placeholder(R.drawable.notification_tile_bg) // 로딩 중 표시할 기본 이미지
                 .error(R.drawable.notification_bg) // 에러 발생 시 표시할 기본 이미지
                 .into(binding.thumbnailImageView)
+            //클릭 리스너 호출
+            binding.root.setOnClickListener {
+                onItemClickListener?.invoke(searchModel)
+            }
         }
     }
 
@@ -50,7 +55,10 @@ class SearchAdapter : ListAdapter<SearchModel, SearchAdapter.ImageItemViewHolder
     override fun onBindViewHolder(holder: ImageItemViewHolder, position: Int) {
         holder.bind(currentList[position])
     }
-
+    //외부 클릭 리스너
+    fun setOnItemClickListener(listener: (SearchModel) -> Unit) {
+        onItemClickListener = listener
+    }
     companion object {
         val diffUtil = object : DiffUtil.ItemCallback<SearchModel>() {
             override fun areItemsTheSame(oldItem: SearchModel, newItem: SearchModel): Boolean {

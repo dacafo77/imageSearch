@@ -1,6 +1,7 @@
 package com.example.myimagesearch.Fragment
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
@@ -11,6 +12,7 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
+import com.example.myimagesearch.MainActivity
 import com.example.myimagesearch.R
 import com.example.myimagesearch.adapter.SearchAdapter
 import com.example.myimagesearch.api.ImageService
@@ -31,6 +33,8 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
     private var _binding: FragmentImagesearchBinding? = null
     private val binding get() = _binding!!
 
+    private lateinit var sharedPreferences: SharedPreferences
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -42,24 +46,34 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        initImageRecyclerView()
-        setupSearchListener() // 이벤트 리스너 설정
+        // SharedPreferences 초기화
+        sharedPreferences = requireContext().getSharedPreferences("selected_images", Context.MODE_PRIVATE)
 
-        //포커스시에 글자 삭제
+        initImageRecyclerView()
+        setupSearchListener()
+
+        // 이미지 클릭 시 데이터 저장 및 전달
+        (binding.imageRecyclerView.adapter as SearchAdapter).setOnItemClickListener { searchModel ->
+            val mainActivity = activity as? MainActivity
+            val savedImageList = mainActivity?.savedImageList
+            savedImageList?.add(searchModel.thumbnailUrl ?: "")
+            saveSelectedImages(savedImageList)
+        }
+
+        // 포커스시에 글자 삭제
         binding.searchEditText.setOnFocusChangeListener { v, hasFocus ->
             if (hasFocus) {
                 binding.searchEditText.text.clear()
             }
         }
 
-        //포커스 활성화
+        // 포커스 활성화
         binding.searchEditText.setOnClickListener {
             binding.searchEditText.isFocusableInTouchMode = true
             binding.searchEditText.isFocusable = true
             binding.searchEditText.requestFocus()
-            //키보드 활성화
-            val keyBoard =
-                requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            // 키보드 활성화
+            val keyBoard = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
             keyBoard.showSoftInput(binding.searchEditText, InputMethodManager.SHOW_IMPLICIT)
         }
 
@@ -69,9 +83,8 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
             if (query.isNotEmpty()) {
                 fetchData(query) // 사용자가 입력한 쿼리를 fetchData로 전달
 
-                //키보드 비활성화
-                val keyBoard =
-                    requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                // 키보드 비활성화
+                val keyBoard = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 keyBoard.hideSoftInputFromWindow(binding.searchEditText.windowToken, 0)
             }
         }
@@ -139,9 +152,9 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
                     imageSearchResult?.documents?.forEach {
                         Log.d("API_RESPONSE", "Thumbnail URL: ${it.thumbnailUrl}")
                     }
-                    //이미지 갯수 제한
+                    // 이미지 갯수 제한
                     val imageList = imageSearchResult?.documents?.take(80)
-                    
+
                     // 데이터를 RecyclerView에 반영
                     val adapter = binding.imageRecyclerView.adapter as SearchAdapter
                     adapter.submitList(imageList?.map {
@@ -153,13 +166,10 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
                             itemType = SearchListType.IMAGE
                         )
                     })
-                    //재 검색시 리사이클러뷰 초기화
+                    // 재 검색 시 리사이클러뷰 초기화
                     binding.imageRecyclerView.scrollToPosition(0)
                 } else {
-                    Log.e(
-                        "API_ERROR",
-                        "Error: ${response.code()} - ${response.errorBody()?.string()}"
-                    )
+                    Log.e("API_ERROR", "Error: ${response.code()} - ${response.errorBody()?.string()}")
                 }
             }
 
@@ -167,6 +177,13 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
                 Log.e("API_ERROR", "Failure: ${t.message}")
             }
         })
+    }
+
+    // 선택된 이미지를 SharedPreferences에 저장
+    private fun saveSelectedImages(selectedImages: List<String>?) {
+        val editor = sharedPreferences.edit()
+        editor.putStringSet("image_urls", selectedImages?.toSet())
+        editor.apply()
     }
 
     override fun onDestroyView() {
