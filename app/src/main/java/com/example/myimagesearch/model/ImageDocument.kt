@@ -3,7 +3,7 @@ package com.example.myimagesearch.model
 import com.google.gson.annotations.SerializedName
 import java.util.Date
 
-data class ImageDocument(
+data class MediaDocument(
     @SerializedName("collection")
     val collection: String?,
     @SerializedName("datetime")
@@ -19,5 +19,7 @@ data class ImageDocument(
     @SerializedName("thumbnail_url")
     val thumbnailUrl: String?,
     @SerializedName("width")
-    val width: Int?
+    val width: Int?,
+    @SerializedName("video_url")
+    val videoUrl: String
 )

@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.example.myimagesearch.MainActivity
 import com.example.myimagesearch.R
 import com.example.myimagesearch.adapter.SearchAdapter
-import com.example.myimagesearch.api.ImageService
+import com.example.myimagesearch.api.MediaService
 import com.example.myimagesearch.databinding.FragmentImagesearchBinding
 import com.example.myimagesearch.model.ImageSearch
 import com.example.myimagesearch.model.SearchModel
@@ -50,6 +50,10 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
         // SharedPreferences 초기화
         sharedPreferences =
             requireContext().getSharedPreferences("saved_images", Context.MODE_PRIVATE)
+
+        //검색어 불러오기
+        val searchWord = sharedPreferences.getString("searchWord", "")
+        binding.searchEditText.setText(searchWord)
 
         initImageRecyclerView()
         setupSearchListener()
@@ -115,6 +119,10 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
     }
 
     private fun fetchData(query: String) {
+        //검색어 저장
+        val editor = sharedPreferences.edit()
+        editor.putString("searchWord", query)
+        editor.apply()
         // HttpLoggingInterceptor 설정
         val logging = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY // 전체 요청과 응답을 로그로 출력
@@ -144,7 +152,7 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
-        val imageService = retrofit.create(ImageService::class.java)
+        val imageService = retrofit.create(MediaService::class.java)
 
         val call = imageService.searchImages("KakaoAK e9e0d93198726fed58205bcc2da07846", query)
         call.enqueue(object : Callback<ImageSearch> {
