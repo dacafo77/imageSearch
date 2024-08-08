@@ -3,7 +3,6 @@ package com.example.myimagesearch.Fragment
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -21,6 +20,7 @@ import com.example.myimagesearch.databinding.FragmentImagesearchBinding
 import com.example.myimagesearch.model.ImageSearch
 import com.example.myimagesearch.model.SearchModel
 import com.example.myimagesearch.model.SearchListType
+import com.example.myimagesearch.model.VideoSearch
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
@@ -48,10 +48,9 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
         super.onViewCreated(view, savedInstanceState)
 
         // SharedPreferences 초기화
-        sharedPreferences =
-            requireContext().getSharedPreferences("saved_images", Context.MODE_PRIVATE)
+        sharedPreferences = requireContext().getSharedPreferences("saved_images", Context.MODE_PRIVATE)
 
-        //검색어 불러오기
+        // 검색어 불러오기
         val searchWord = sharedPreferences.getString("searchWord", "")
         binding.searchEditText.setText(searchWord)
 
@@ -108,7 +107,7 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
                 val query = binding.searchEditText.text.toString()
                 if (query.isNotEmpty()) {
                     fetchData(query) // 사용자가 입력한 쿼리를 fetchData로 전달
-                    //키보드 비활성화
+                    // 키보드 비활성화
                     val keyBoard = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                     keyBoard.hideSoftInputFromWindow(binding.searchEditText.windowToken, 0)
                 }
@@ -119,13 +118,14 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
     }
 
     private fun fetchData(query: String) {
-        //검색어 저장
+        // 검색어 저장
         val editor = sharedPreferences.edit()
         editor.putString("searchWord", query)
         editor.apply()
+
         // HttpLoggingInterceptor 설정
         val logging = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY // 전체 요청과 응답을 로그로 출력
+            level = HttpLoggingInterceptor.Level.BODY
         }
 
         // OkHttpClient 설정
@@ -134,11 +134,11 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
             .addInterceptor { chain ->
                 val original = chain.request()
                 val requestBuilder = original.newBuilder()
-                    .header("Authorization", "KakaoAK e9e0d93198726fed58205bcc2da07846") // API 키 변경
-                    .header("User-Agent", "AppName") // 적절한 사용자 에이전트 값
-                    .header("Referer", "https://yourappdomain.com") // 적절한 도메인 또는 앱 정보
-                    .header("os", android.os.Build.VERSION.RELEASE) // 운영 체제 버전
-                    .header("origin", "AppName") // 애플리케이션 이름 또는 도메인
+                    .header("Authorization", "KakaoAK e9e0d93198726fed58205bcc2da07846")
+                    .header("User-Agent", "AppName")
+                    .header("Referer", "https://yourappdomain.com")
+                    .header("os", android.os.Build.VERSION.RELEASE)
+                    .header("origin", "AppName")
                     .method(original.method, original.body)
                 val request = requestBuilder.build()
                 chain.proceed(request)
@@ -152,42 +152,57 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
-        val imageService = retrofit.create(MediaService::class.java)
+        val mediaService = retrofit.create(MediaService::class.java)
 
-        val call = imageService.searchImages("KakaoAK e9e0d93198726fed58205bcc2da07846", query)
-        call.enqueue(object : Callback<ImageSearch> {
+        // 이미지 검색 API 호출
+        val imageCall = mediaService.searchImages("KakaoAK e9e0d93198726fed58205bcc2da07846", query)
+        imageCall.enqueue(object : Callback<ImageSearch> {
             override fun onResponse(call: Call<ImageSearch>, response: Response<ImageSearch>) {
                 if (response.isSuccessful) {
                     val imageSearchResult = response.body()
-                    Log.d("API_RESPONSE", "Success: ${imageSearchResult.toString()}")
-
-                    // 응답 데이터에서 thumbnailUrl 필드 확인
-                    imageSearchResult?.documents?.forEach {
-                        Log.d("API_RESPONSE", "Thumbnail URL: ${it.thumbnailUrl}")
-                    }
-                    // 이미지 갯수 제한
-                    val imageList = imageSearchResult?.documents?.take(80)
-
-                    // 데이터를 RecyclerView에 반영
-                    val adapter = binding.imageRecyclerView.adapter as SearchAdapter
-                    adapter.submitList(imageList?.map {
+                    val imageList = imageSearchResult?.documents?.take(80)?.map { document ->
                         SearchModel(
-                            id = it.collection ?: "Unknown",
-                            thumbnailUrl = it.thumbnailUrl,
-                            siteName = it.displaySiteName,
-                            datetime = it.dateTime,
+                            id = document.collection ?: "Unknown",
+                            thumbnailUrl = document.thumbnailUrl,
+                            siteName = document.displaySiteName,
+                            datetime = document.dateTime,
                             itemType = SearchListType.IMAGE
                         )
+                    } ?: emptyList()
+
+                    // 동영상 검색 API 호출
+                    val videoCall = mediaService.searchVideos("KakaoAK e9e0d93198726fed58205bcc2da07846", query)
+                    videoCall.enqueue(object : Callback<VideoSearch> {
+                        override fun onResponse(call: Call<VideoSearch>, response: Response<VideoSearch>) {
+                            if (response.isSuccessful) {
+                                val videoSearchResult = response.body()
+                                val videoList = videoSearchResult?.documents?.take(80)?.map { document ->
+                                    SearchModel(
+                                        id = document.collection ?: "Unknown",
+                                        thumbnailUrl = document.thumbnailUrl,
+                                        siteName = document.displaySiteName,
+                                        datetime = document.dateTime,
+                                        itemType = SearchListType.VIDEO
+                                    )
+                                } ?: emptyList()
+
+                                // 이미지와 동영상 리스트를 합쳐서 표시
+                                val adapter = binding.imageRecyclerView.adapter as SearchAdapter
+                                adapter.submitList(imageList + videoList)
+                            }
+                        }
+
+                        override fun onFailure(call: Call<VideoSearch>, t: Throwable) {
+                            // 실패 처리
+                        }
                     })
-                    // 재 검색 시 리사이클러뷰 초기화
-                    binding.imageRecyclerView.scrollToPosition(0)
                 } else {
-                    Log.e("API_ERROR", "Error: ${response.code()} - ${response.errorBody()?.string()}")
+                    // 실패 처리
                 }
             }
 
             override fun onFailure(call: Call<ImageSearch>, t: Throwable) {
-                Log.e("API_ERROR", "Failure: ${t.message}")
+                // 실패 처리
             }
         })
     }
@@ -199,7 +214,7 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
         editor.putStringSet("image_urls", imageUrlSet)
         editor.apply()
 
-        Toast.makeText(requireContext(),"이미지가 저장되었습니다.",Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), "이미지가 저장되었습니다.", Toast.LENGTH_SHORT).show()
     }
 
     override fun onDestroyView() {

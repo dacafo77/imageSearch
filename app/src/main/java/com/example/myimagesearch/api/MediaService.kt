@@ -19,7 +19,7 @@ interface MediaService {
     ): Call<ImageSearch>
 
     //동영상 검색 메서드
-    @GET("/v2/search/vcl691101ip")
+    @GET("/v2/search/vclip")
     fun searchVideos(
         @Header("Authorization") authHeader: String,
         @Query("query") query: String,
