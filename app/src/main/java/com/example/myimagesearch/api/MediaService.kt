@@ -1,6 +1,7 @@
 package com.example.myimagesearch.api
 
 import com.example.myimagesearch.model.ImageSearch
+import com.example.myimagesearch.model.VideoSearch
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -26,5 +27,4 @@ interface MediaService {
         @Query("page") page: Int = 1,
         @Query("size") size: Int = 10
     ): Call<VideoSearch>
-}
 }
