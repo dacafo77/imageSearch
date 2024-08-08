@@ -3,6 +3,7 @@ package com.example.myimagesearch.adapter
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.util.Log
+import android.view.View
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -35,9 +36,15 @@ private var onItemClickListener: ((SearchModel) -> Unit)? = null
                 .placeholder(R.drawable.notification_tile_bg) // 로딩 중 표시할 기본 이미지
                 .error(R.drawable.notification_bg) // 에러 발생 시 표시할 기본 이미지
                 .into(binding.thumbnailImageView)
+
+            //아이콘 기본 숨김
+            binding.icLike.visibility = View.GONE
+
+
             //클릭 리스너 호출
             binding.root.setOnClickListener {
                 onItemClickListener?.invoke(searchModel)
+                binding.icLike.visibility = View.VISIBLE
             }
         }
     }

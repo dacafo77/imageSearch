@@ -104,6 +104,9 @@ class ImageSearchFragment : Fragment(R.layout.fragment_imagesearch) {
                 val query = binding.searchEditText.text.toString()
                 if (query.isNotEmpty()) {
                     fetchData(query) // 사용자가 입력한 쿼리를 fetchData로 전달
+                    //키보드 비활성화
+                    val keyBoard = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                    keyBoard.hideSoftInputFromWindow(binding.searchEditText.windowToken, 0)
                 }
                 return@setOnKeyListener true
             }
